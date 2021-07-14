@@ -9,9 +9,13 @@ stdenv.mkDerivation rec {
     sha256 = "1sld5bbig2pkcr4zrdpvfzifc6a3lc8i8kdzk5ryjh166844mxd5";
   };
 
-  preBuild = ''
-    makeFlags="PREFIX=$out ETCDIR=$out/etc"
-  '';
+  makeFlags = [
+    "PREFIX=${placeholder "out"}"
+    "ETCDIR=${placeholder "out"}/etc"
+  ] ++ (lib.optional stdenv.isDarwin [
+    # fixes: ld: library not found for -lrt
+    "LDLIBS="
+  ]);
 
   passthru.tests.babeld = nixosTests.babeld;
 
@@ -20,6 +24,6 @@ stdenv.mkDerivation rec {
     description = "Loop-avoiding distance-vector routing protocol";
     license = licenses.mit;
     maintainers = with maintainers; [ fpletz hexa ];
-    platforms = platforms.linux;
+    platforms = platforms.linux ++ platforms.darwin;
   };
 }
